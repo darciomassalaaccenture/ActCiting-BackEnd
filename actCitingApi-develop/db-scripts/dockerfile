@@ -1,0 +1,11 @@
+FROM alpine:latest
+
+RUN apk add --update nodejs npm
+
+
+# RUN mkdir /db
+# COPY * /db/
+WORK dir /db
+
+COPY ./run-all-sql.sh .
+COPY * .sql .

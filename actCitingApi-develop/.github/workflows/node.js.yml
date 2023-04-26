@@ -1,0 +1,39 @@
+# Name of Workflow
+name: Pipeline for actciting backend deployment.
+# The Event That Will Trigger Your Pipeline
+on:
+  push: 
+  # On This Branch
+    branches: 
+      - develop
+jobs:
+  build-and-deploy: 
+  # Run on the following environment
+    runs-on: ubuntu-latest
+    # Environment Variables
+    env:
+      AWS_ACCOUNT: ${{ secrets.AWS_ACCOUNT }}
+      AWS_REGION: ${{ secrets.AWS_REGION }}
+    permissions: 
+      id-token: write
+      contents: read
+    #Enables you to run a job for different versions or operating systems
+    strategy:
+      matrix: 
+        node-version: [14.x]
+    steps: 
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: NPM install
+        run: npm ci
+      - name: NPM test
+        run: npm test
+      - name: Installing Serverless framework
+        run: npm install -g serverless
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          role-to-assume: arn:aws:iam::${{env.AWS_ACCOUNT}}:role/GitHubActions
+          aws-region: ${{ env.AWS_REGION }}
+      - name: Deploy Lambda & API Gateway
+        run: serverless deploy
